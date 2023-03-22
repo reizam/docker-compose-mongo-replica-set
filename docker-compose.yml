@@ -1,0 +1,78 @@
+version: "3"
+
+services:
+  mongo1:
+    image: mongo:4.4
+    container_name: mongo1
+    restart: always
+    expose:
+      - 27017
+    volumes:
+      - "./volumes/mongodb1:/db/data"
+      - ./scripts/rs-init.sh:/scripts/rs-init.sh
+      - "./keyfile.key:/etc/keyfile.key"
+    ports:
+      - "27017:27017"
+    depends_on:
+      - mongo2
+      - mongo3
+    links:
+      - mongo2
+      - mongo3
+    entrypoint:
+      [
+        "/usr/bin/mongod",
+        "--auth",
+        "--keyFile",
+        "/etc/keyfile.key",
+        "--bind_ip_all",
+        "--replSet",
+        "rs0",
+      ]
+    networks:
+      - mongo-network
+  mongo2:
+    image: mongo:4.4
+    container_name: mongo2
+    restart: always
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./keyfile.key:/etc/keyfile.key
+      - ./volumes/mongodb2:/data/db
+    entrypoint:
+      [
+        "/usr/bin/mongod",
+        "--auth",
+        "--keyFile",
+        "/etc/keyfile.key",
+        "--bind_ip_all",
+        "--replSet",
+        "rs0",
+      ]
+    networks:
+      - mongo-network
+  mongo3:
+    image: mongo:4.4
+    container_name: mongo3
+    restart: always
+    ports:
+      - "27019:27017"
+    volumes:
+      - ./keyfile.key:/etc/keyfile.key
+      - ./volumes/mongodb3:/data/db
+    entrypoint:
+      [
+        "/usr/bin/mongod",
+        "--auth",
+        "--keyFile",
+        "/etc/keyfile.key",
+        "--bind_ip_all",
+        "--replSet",
+        "rs0",
+      ]
+    networks:
+      - mongo-network
+networks:
+  mongo-network:
+    driver: bridge
